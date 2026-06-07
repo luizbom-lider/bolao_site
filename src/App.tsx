@@ -15,7 +15,18 @@ import NotFound from "@/pages/NotFound";
 const queryClient = new QueryClient();
 
 function AppRoutes() {
-  const { user } = useApp();
+  const { user, isLoading } = useApp();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin h-12 w-12 border-4 border-copa-orange border-t-transparent rounded-full mx-auto mb-4" />
+          <p className="text-primary-foreground font-semibold">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) return <LoginPage />;
 
