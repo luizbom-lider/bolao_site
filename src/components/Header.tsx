@@ -5,15 +5,16 @@ import { Home, Trophy, Target, User, LogOut, Menu, X, Settings } from "lucide-re
 import { useState } from "react";
 
 const NAV_ITEMS = [
-  { to: "/", label: "Home", icon: Home },
-  { to: "/apostas", label: "Apostas", icon: Target },
-  { to: "/ranking", label: "Ranking", icon: Trophy },
-  { to: "/perfil", label: "Perfil", icon: User },
-  { to: "/admin", label: "Admin", icon: Settings },
+  { to: "/", label: "Home", icon: Home, adminOnly: false },
+  { to: "/apostas", label: "Apostas", icon: Target, adminOnly: false },
+  { to: "/ranking", label: "Ranking", icon: Trophy, adminOnly: false },
+  { to: "/perfil", label: "Perfil", icon: User, adminOnly: false },
+  { to: "/admin", label: "Admin", icon: Settings, adminOnly: true },
 ];
 
 export default function Header() {
-  const { user, logout } = useApp();
+  const { user, logout, isAdmin } = useApp();
+  const visibleNavItems = NAV_ITEMS.filter(item => !item.adminOnly || isAdmin);
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -21,7 +22,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 bg-gradient-stadium border-b border-primary/20 backdrop-blur-sm">
       <div className="container flex items-center justify-between h-16">
         <Link to="/" className="flex items-center gap-2">
-          <img src={logoCube} alt="Logo EJ" className="h-10 w-10 object-contain" />
+          <img src={logoCube} alt="Logo EJ" className="h-10 w-auto object-contain" />
           <span className="font-display text-primary-foreground text-lg hidden sm:block">
             BOLÃO COPA 2026
           </span>
@@ -29,7 +30,7 @@ export default function Header() {
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-1">
-          {NAV_ITEMS.map(item => (
+          {visibleNavItems.map(item => (
             <Link
               key={item.to}
               to={item.to}
@@ -59,7 +60,7 @@ export default function Header() {
       {/* Mobile nav */}
       {menuOpen && (
         <nav className="md:hidden bg-gradient-stadium border-t border-primary-foreground/10 pb-4 px-4">
-          {NAV_ITEMS.map(item => (
+          {visibleNavItems.map(item => (
             <Link
               key={item.to}
               to={item.to}

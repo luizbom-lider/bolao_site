@@ -4,6 +4,7 @@ import {
   getDocs,
   getDoc,
   addDoc,
+  setDoc,
   updateDoc,
   deleteDoc,
   query,
@@ -16,6 +17,18 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 import type { Game, Bet, Comment, User, Badge } from '@/lib/types';
+
+function cleanUndefined(obj: any): any {
+  if (!obj || typeof obj !== 'object') return obj;
+  const cleaned: any = Array.isArray(obj) ? [] : {};
+  Object.keys(obj).forEach((key) => {
+    const val = obj[key];
+    if (val !== undefined) {
+      cleaned[key] = typeof val === 'object' && val !== null && !(val instanceof Timestamp) ? cleanUndefined(val) : val;
+    }
+  });
+  return cleaned;
+}
 
 class FirestoreService {
   // ==================== GAMES ====================
@@ -41,16 +54,16 @@ class FirestoreService {
 
   async addGame(game: Omit<Game, 'id'>): Promise<string> {
     const gamesRef = collection(db, 'games');
-    const docRef = await addDoc(gamesRef, {
+    const docRef = await addDoc(gamesRef, cleanUndefined({
       ...game,
       createdAt: Timestamp.now(),
-    });
+    }));
     return docRef.id;
   }
 
   async updateGame(gameId: string, updates: Partial<Game>): Promise<void> {
     const gameRef = doc(db, 'games', gameId);
-    await updateDoc(gameRef, updates);
+    await updateDoc(gameRef, cleanUndefined(updates));
   }
 
   async setGameResult(
@@ -73,12 +86,12 @@ class FirestoreService {
 
   // ==================== BETS ====================
   async placeBet(bet: Omit<Bet, 'id'>): Promise<string> {
-    const betsRef = collection(db, 'bets');
-    const docRef = await addDoc(betsRef, {
+    const betRef = doc(db, 'bets', `${bet.userId}_${bet.gameId}`);
+    await setDoc(betRef, cleanUndefined({
       ...bet,
       createdAt: Timestamp.now(),
-    });
-    return docRef.id;
+    }), { merge: true });
+    return betRef.id;
   }
 
   async getBetsForGame(gameId: string): Promise<Bet[]> {
@@ -99,6 +112,17 @@ class FirestoreService {
       id: doc.id,
       ...doc.data(),
     } as Bet));
+  }
+
+  onBetsChange(callback: (bets: Bet[]) => void) {
+    const betsRef = collection(db, 'bets');
+    return onSnapshot(betsRef, (snapshot) => {
+      const bets = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      } as Bet));
+      callback(bets);
+    });
   }
 
   onUserBetsChange(userId: string, callback: (bets: Bet[]) => void) {
@@ -136,23 +160,17 @@ class FirestoreService {
 
   async addComment(comment: Omit<Comment, 'id' | 'likes' | 'timestamp'>): Promise<string> {
     const commentsRef = collection(db, 'comments');
-    const docRef = await addDoc(commentsRef, {
+    const docRef = await addDoc(commentsRef, cleanUndefined({
       ...comment,
       likes: 0,
       createdAt: Timestamp.now(),
-    });
+    }));
     return docRef.id;
   }
 
-  async likeComment(commentId: string): Promise<void> {
+  async deleteComment(commentId: string): Promise<void> {
     const commentRef = doc(db, 'comments', commentId);
-    const commentDoc = await getDoc(commentRef);
-    if (commentDoc.exists()) {
-      const currentLikes = commentDoc.data().likes || 0;
-      await updateDoc(commentRef, {
-        likes: currentLikes + 1,
-      });
-    }
+    await deleteDoc(commentRef);
   }
 
   // ==================== USERS ====================
@@ -190,7 +208,7 @@ class FirestoreService {
 
   async updateUser(userId: string, updates: Partial<User>): Promise<void> {
     const userRef = doc(db, 'users', userId);
-    await updateDoc(userRef, updates);
+    await updateDoc(userRef, cleanUndefined(updates));
   }
 
   async updateUserPoints(userId: string, points: number): Promise<void> {
@@ -215,6 +233,11 @@ class FirestoreService {
         });
       }
     }
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    const userRef = doc(db, 'users', userId);
+    await deleteDoc(userRef);
   }
 }
 

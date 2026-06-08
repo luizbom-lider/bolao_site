@@ -3,7 +3,7 @@ import { Game } from "@/lib/types";
 import mascotYoshi from "@/assets/mascot-yoshi.png";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Trophy, Target, ArrowRight, MessageCircle } from "lucide-react";
+import { Trophy, Target, ArrowRight, MessageCircle, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 function GameCard({ game }: { game: Game }) {
@@ -39,7 +39,7 @@ function GameCard({ game }: { game: Game }) {
 }
 
 export default function HomePage() {
-  const { user, users, games, comments, addComment, likeComment } = useApp();
+  const { user, users, games, comments, addComment, deleteComment, isAdmin } = useApp();
   const [commentText, setCommentText] = useState("");
 
   const upcomingGames = games.filter(g => !g.finished).slice(0, 4);
@@ -165,9 +165,15 @@ export default function HomePage() {
               <motion.div key={c.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="bg-card rounded-xl p-4 shadow-card border border-border">
                 <div className="flex items-center justify-between mb-1">
                   <span className="font-bold text-sm text-foreground">{c.userName}</span>
-                  <button onClick={() => likeComment(c.id)} className="text-xs text-muted-foreground hover:text-copa-orange transition-colors">
-                    ❤️ {c.likes}
-                  </button>
+                  {isAdmin && (
+                    <button
+                      onClick={() => deleteComment(c.id)}
+                      className="text-xs text-muted-foreground hover:text-destructive transition-colors flex items-center gap-1"
+                      title="Excluir comentário"
+                    >
+                      <Trash2 size={14} /> Excluir
+                    </button>
+                  )}
                 </div>
                 <p className="text-sm text-foreground">{c.text}</p>
               </motion.div>

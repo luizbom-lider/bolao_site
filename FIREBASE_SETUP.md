@@ -51,28 +51,43 @@ Todos os arquivos locais foram criados e o projeto compila com sucesso:
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users - only themselves can read/write
+    // Helper: verifica se o usuário é admin
+    function isAdmin() {
+      return request.auth != null 
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // Users
     match /users/{userId} {
-      allow read, write: if request.auth.uid == userId;
       allow read: if request.auth != null;
+      // Usuário pode editar seu próprio doc, mas NÃO pode mudar isAdmin
+      allow update: if request.auth.uid == userId 
+        && (!('isAdmin' in request.resource.data) 
+            || request.resource.data.isAdmin == resource.data.isAdmin);
+      allow create: if request.auth.uid == userId;
+      // Admins podem editar/deletar qualquer user (inclusive isAdmin)
+      allow update, delete: if isAdmin();
     }
     
-    // Games - all authenticated users can read, admins write
+    // Games - todos leem, admins escrevem
     match /games/{gameId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+      allow write: if isAdmin();
     }
     
-    // Bets - users can read/write their own
+    // Bets - todos leem, users criam/editam suas próprias
     match /bets/{betId} {
-      allow read, write: if request.auth.uid == resource.data.userId;
       allow read: if request.auth != null;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow update, delete: if request.auth.uid == resource.data.userId;
     }
     
-    // Comments - authenticated users can read/write
+    // Comments - authenticated users podem ler/escrever
     match /comments/{commentId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if isAdmin();
     }
   }
 }
@@ -175,6 +190,8 @@ Após criar as coleções, a estrutura será:
   - points: number
   - badges: Badge[]
   - approved: boolean
+  - isAdmin: boolean  // ← NOVO: define se é administrador
+  - consecutiveExact: number
 
 /games/{gameId}
   - teamA, teamB: string
@@ -198,12 +215,13 @@ Após criar as coleções, a estrutura será:
 
 ## Próximas Melhorias (Futuro)
 
-- [ ] Implementar admin com Firebase Custom Claims
+- [x] Implementar admin com Firestore (campo isAdmin)
 - [ ] Adicionar Firestore backup automático
 - [ ] Integrar Firebase Analytics
 - [ ] Adicionar recuperação de senha
 - [ ] Social login (Google, GitHub)
 - [ ] Avatar do usuário via Firebase Storage
+- [ ] Migrar para Firebase Custom Claims (requer plano Blaze)
 
 ---
 

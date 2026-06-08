@@ -18,13 +18,13 @@ export default function PerfilPage() {
     <div className="min-h-screen bg-background">
       <div className="bg-gradient-stadium py-8 px-4">
         <div className="container text-center">
-          <motion.img
-            src={mascotYoshi}
-            alt="Yoshi"
-            className="h-20 w-20 mx-auto mb-3 object-contain rounded-full border-4 border-copa-orange bg-card"
-            animate={{ y: [0, -5, 0] }}
-            transition={{ repeat: Infinity, duration: 2.5 }}
-          />
+            <motion.img
+              src={mascotYoshi}
+              alt="Yoshi"
+              className="h-20 w-20 mx-auto mb-3 object-cover object-top rounded-full border-4 border-copa-orange bg-card"
+              animate={{ y: [0, -5, 0] }}
+              transition={{ repeat: Infinity, duration: 2.5 }}
+            />
           <h1 className="font-display text-2xl text-primary-foreground">{user.name}</h1>
           <p className="text-primary-foreground/70 text-sm">{user.area}</p>
         </div>
@@ -83,8 +83,7 @@ export default function PerfilPage() {
         <section className="bg-card rounded-xl p-5 shadow-card border border-border">
           <h3 className="font-display text-foreground mb-3">📋 Como funciona a pontuação</h3>
           <ul className="space-y-2 text-sm text-foreground">
-            <li className="flex items-center gap-2"><span className="bg-primary/10 text-primary px-2 py-0.5 rounded font-bold">+2</span> Acertar o vencedor do jogo</li>
-            <li className="flex items-center gap-2"><span className="bg-copa-gold/20 text-copa-gold px-2 py-0.5 rounded font-bold">+3</span> Acertar o placar exato</li>
+            <li className="flex items-center gap-2"><span className="bg-copa-gold/20 text-copa-gold px-2 py-0.5 rounded font-bold">+5</span> Acertar o placar exato</li>
           </ul>
         </section>
 
