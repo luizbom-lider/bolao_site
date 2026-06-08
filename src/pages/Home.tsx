@@ -10,7 +10,7 @@ function GameCard({ game }: { game: Game }) {
   return (
     <div className="bg-card rounded-xl p-4 shadow-card border border-border hover:shadow-glow transition-shadow">
       <div className="text-xs text-muted-foreground mb-2 text-center font-semibold">
-        {game.group} • {new Date(game.date).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })} – {game.time}
+        {game.group} • {new Date(game.date + 'T12:00:00').toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })} – {game.time}
       </div>
       <div className="flex items-center justify-between gap-2">
         <div className="flex-1 text-center">

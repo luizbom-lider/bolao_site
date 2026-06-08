@@ -249,7 +249,7 @@ export default function AdminPage() {
                       >
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-xs text-muted-foreground font-semibold">
-                            {game.group} • {new Date(game.date).toLocaleDateString("pt-BR")} – {game.time}
+                            {game.group} • {new Date(game.date + 'T12:00:00').toLocaleDateString("pt-BR")} – {game.time}
                           </span>
                           <div className="flex gap-1">
                             <button onClick={() => setEditingGame(game)} className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">

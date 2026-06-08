@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useApp } from '@/lib/context';
 import { AREAS } from '@/lib/types';
 import mascotYoshi from '@/assets/mascot-yoshi.png';
-import logoCube from '@/assets/lider-colorido.png';
+import logoCube from '@/assets/logo-cube.png';
 import { motion } from 'framer-motion';
 import { Lock, UserPlus, LogIn, Mail } from 'lucide-react';
 import { z } from 'zod';
