@@ -58,7 +58,7 @@ export default function ApostasPage() {
                   className="bg-card rounded-xl p-5 shadow-card border border-border"
                 >
                   <div className="text-xs text-muted-foreground text-center mb-3 font-semibold">
-                    {game.group} • {new Date(game.date).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })} – {game.time}
+                    {game.group} • {new Date(game.date + 'T12:00:00').toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })} – {game.time}
                   </div>
                   <div className="flex items-center justify-center gap-3">
                     <div className="text-center flex-1">
