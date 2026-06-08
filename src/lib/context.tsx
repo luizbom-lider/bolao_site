@@ -14,18 +14,21 @@ export interface AppContextType {
   comments: Comment[];
   isAdmin: boolean;
   isLoading: boolean;
+  pendingUsers: User[];
   signUp: (email: string, password: string, name: string, area: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   placeBet: (gameId: string, scoreA: number, scoreB: number) => Promise<void>;
   getBetForGame: (gameId: string) => Bet | undefined;
   addComment: (text: string) => Promise<void>;
-  likeComment: (commentId: string) => Promise<void>;
+  deleteComment: (commentId: string) => Promise<void>;
   addGame: (game: Omit<Game, 'id'>) => Promise<void>;
   updateGame: (id: string, data: Partial<Game>) => Promise<void>;
   deleteGame: (id: string) => Promise<void>;
   setGameResult: (gameId: string, scoreA: number, scoreB: number) => Promise<void>;
   updateUserProfile: (data: Partial<User>) => Promise<void>;
+  approveUser: (userId: string) => Promise<void>;
+  rejectUser: (userId: string) => Promise<void>;
 }
 
 export const AppContext = createContext<AppContextType | null>(null);
@@ -126,8 +129,7 @@ function calculatePoints(bets: Bet[], games: Game[], users: User[]): User[] {
       (bet.scoreA < bet.scoreB && game.scoreA < game.scoreB) ||
       (bet.scoreA === bet.scoreB && game.scoreA === game.scoreB);
 
-    if (exactMatch) points = 3;
-    else if (winnerMatch) points = 2;
+    if (exactMatch) points = 5;
 
     pointsMap[bet.userId] = (pointsMap[bet.userId] || 0) + points;
   }
@@ -153,6 +155,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           const userData = await firestoreService.getUserById(authUser.uid);
           if (userData) {
             setUser(userData as User);
+            setIsAdmin(userData.isAdmin === true);
           } else {
             console.warn('User document not found in Firestore, creating one...');
             // Create user document if it doesn't exist
@@ -165,11 +168,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
               badges: [],
               consecutiveExact: 0,
               approved: true,
+              isAdmin: false,
             } as Partial<User>);
             // Fetch the created user
             const newUserData = await firestoreService.getUserById(authUser.uid);
             if (newUserData) {
               setUser(newUserData as User);
+              setIsAdmin(newUserData.isAdmin === true);
             }
           }
           setFirebaseUser(authUser);
@@ -181,6 +186,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       } else {
         setUser(null);
         setFirebaseUser(null);
+        setIsAdmin(false);
       }
       setIsLoading(false);
     });
@@ -196,10 +202,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return unsubscribe;
   }, []);
 
-  // Setup real-time listeners for bets
+  // Setup real-time listeners for comments
   useEffect(() => {
     const unsubscribe = firestoreService.onCommentsChange((commentsData) => {
       setComments(commentsData);
+    });
+    return unsubscribe;
+  }, []);
+
+  // Setup real-time listeners for bets
+  useEffect(() => {
+    const unsubscribe = firestoreService.onBetsChange((betsData) => {
+      setBets(betsData);
     });
     return unsubscribe;
   }, []);
@@ -297,11 +311,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const likeComment = async (commentId: string) => {
+  const deleteComment = async (commentId: string) => {
     try {
-      await firestoreService.likeComment(commentId);
+      await firestoreService.deleteComment(commentId);
+      toast.success('Comentário excluído!');
     } catch (error) {
-      toast.error('Erro ao curtir comentário');
+      console.error('Erro ao deletar comentário:', error);
+      toast.error('Erro ao deletar comentário');
       throw error;
     }
   };
@@ -310,6 +326,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     try {
       await firestoreService.addGame(game);
     } catch (error) {
+      console.error('Erro ao adicionar jogo:', error);
       toast.error('Erro ao adicionar jogo');
       throw error;
     }
@@ -319,6 +336,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     try {
       await firestoreService.updateGame(id, data);
     } catch (error) {
+      console.error('Erro ao atualizar jogo:', error);
       toast.error('Erro ao atualizar jogo');
       throw error;
     }
@@ -328,6 +346,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     try {
       await firestoreService.deleteGame(id);
     } catch (error) {
+      console.error('Erro ao deletar jogo:', error);
       toast.error('Erro ao deletar jogo');
       throw error;
     }
@@ -338,6 +357,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       await firestoreService.setGameResult(gameId, scoreA, scoreB);
       toast.success('Resultado do jogo registrado!');
     } catch (error) {
+      console.error('Erro ao registrar resultado:', error);
       toast.error('Erro ao registrar resultado');
       throw error;
     }
@@ -350,32 +370,70 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       await firestoreService.updateUser(firebaseUser.uid, data);
       toast.success('Perfil atualizado!');
     } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
       toast.error('Erro ao atualizar perfil');
       throw error;
     }
   };
 
+  const approveUser = async (userId: string) => {
+    try {
+      await firestoreService.updateUser(userId, { approved: true });
+    } catch (error) {
+      console.error('Erro ao aprovar usuário:', error);
+      toast.error('Erro ao aprovar usuário');
+      throw error;
+    }
+  };
+
+  const rejectUser = async (userId: string) => {
+    try {
+      await firestoreService.deleteUser(userId);
+    } catch (error) {
+      console.error('Erro ao rejeitar usuário:', error);
+      toast.error('Erro ao rejeitar usuário');
+      throw error;
+    }
+  };
+
+  const usersWithPointsAndBadges = React.useMemo(() => {
+    const usersWithPoints = calculatePoints(bets, games, users);
+    return usersWithPoints.map(u => ({
+      ...u,
+      badges: evaluateBadges(u, bets, games)
+    }));
+  }, [users, games, bets]);
+
+  const computedUser = React.useMemo(() => {
+    return user ? (usersWithPointsAndBadges.find(u => u.id === user.id) || user) : null;
+  }, [user, usersWithPointsAndBadges]);
+
+  const pendingUsers = usersWithPointsAndBadges.filter((u) => !u.approved);
+
   const value: AppContextType = {
-    user,
+    user: computedUser,
     firebaseUser,
-    users,
+    users: usersWithPointsAndBadges,
     games,
     bets,
     comments,
     isAdmin,
     isLoading,
+    pendingUsers,
     signUp,
     signIn,
     logout,
     placeBet,
     getBetForGame,
     addComment,
-    likeComment,
+    deleteComment,
     addGame,
     updateGame,
     deleteGame,
     setGameResult,
     updateUserProfile,
+    approveUser,
+    rejectUser,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

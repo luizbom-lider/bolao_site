@@ -118,7 +118,7 @@ export default function LoginPage() {
         className="w-full max-w-md"
       >
         <div className="text-center mb-8">
-          <img src={logoCube} alt="Logo" className="h-16 w-16 mx-auto mb-4" />
+          <img src={logoCube} alt="Logo" className="h-16 w-auto mx-auto mb-4 object-contain" />
           <h1 className="font-display text-3xl text-primary-foreground mb-2">
             BOLÃO COPA 2026
           </h1>
@@ -132,7 +132,7 @@ export default function LoginPage() {
             <motion.img
               src={mascotYoshi}
               alt="Yoshi Mascote"
-              className="h-24 w-24 object-contain rounded-full border-4 border-copa-orange bg-card"
+              className="h-24 w-24 object-cover object-top rounded-full border-4 border-copa-orange bg-card"
               animate={{ y: [0, -6, 0] }}
               transition={{ repeat: Infinity, duration: 2 }}
             />

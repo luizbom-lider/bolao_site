@@ -154,13 +154,9 @@ export default function ApostasPage() {
                     {bet && (
                       <div className="mt-3 text-center text-xs">
                         <span className="text-muted-foreground">Seu palpite: {bet.scoreA} x {bet.scoreB}</span>
-                        {exactMatch && (
-                          <span className="ml-2 bg-copa-gold/20 text-copa-gold px-2 py-0.5 rounded-full font-bold">+3 EXATO! 🎯</span>
-                        )}
-                        {!exactMatch && winnerMatch && (
-                          <span className="ml-2 bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">+2 VENCEDOR ✓</span>
-                        )}
-                        {!exactMatch && !winnerMatch && (
+                        {exactMatch ? (
+                          <span className="ml-2 bg-copa-gold/20 text-copa-gold px-2 py-0.5 rounded-full font-bold">+5 EXATO! 🎯</span>
+                        ) : (
                           <span className="ml-2 text-destructive font-bold">Errou 😢</span>
                         )}
                       </div>
