@@ -41,77 +41,24 @@ export const useApp = () => {
 
 function evaluateBadges(user: User, bets: Bet[], games: Game[]): Badge[] {
   const userBets = bets.filter((b) => b.userId === user.id);
-  const totalBets = userBets.length;
 
   let exactCount = 0;
-  let consecutiveExact = 0;
-  let maxConsecutiveExact = 0;
-  let consecutiveCorrect = 0;
-  let maxConsecutiveCorrect = 0;
 
-  const finishedGames = games
-    .filter((g) => g.finished)
-    .sort((a, b) => a.date.localeCompare(b.date));
+  const finishedGames = games.filter((g) => g.finished);
 
   for (const game of finishedGames) {
     const bet = userBets.find((b) => b.gameId === game.id);
-    if (!bet || game.scoreA === undefined || game.scoreB === undefined) {
-      consecutiveExact = 0;
-      consecutiveCorrect = 0;
-      continue;
-    }
-    const exact = bet.scoreA === game.scoreA && bet.scoreB === game.scoreB;
-    const winner =
-      (bet.scoreA > bet.scoreB && game.scoreA > game.scoreB) ||
-      (bet.scoreA < bet.scoreB && game.scoreA < game.scoreB) ||
-      (bet.scoreA === bet.scoreB && game.scoreA === game.scoreB);
-
-    if (exact) {
+    if (!bet || game.scoreA === undefined || game.scoreB === undefined) continue;
+    if (bet.scoreA === game.scoreA && bet.scoreB === game.scoreB) {
       exactCount++;
-      consecutiveExact++;
-      consecutiveCorrect++;
-    } else if (winner) {
-      consecutiveExact = 0;
-      consecutiveCorrect++;
-    } else {
-      consecutiveExact = 0;
-      consecutiveCorrect = 0;
     }
-    maxConsecutiveExact = Math.max(maxConsecutiveExact, consecutiveExact);
-    maxConsecutiveCorrect = Math.max(maxConsecutiveCorrect, consecutiveCorrect);
   }
 
-  return BADGES.map((badge) => {
-    let earned = false;
-    if (badge.id === 'estreante' && totalBets > 0) earned = true;
-    if (badge.id === 'rei-palpite' && maxConsecutiveExact >= 2) earned = true;
-    if (badge.id === 'on-fire' && maxConsecutiveCorrect >= 3) earned = true;
-    if (badge.id === 'vidente' && exactCount >= 5) earned = true;
-    if (badge.id === 'torcedor-fiel' && totalBets >= 6) earned = true;
-
-    if (badge.id === 'zebra-master') {
-      for (const game of finishedGames) {
-        const bet = userBets.find((b) => b.gameId === game.id);
-        if (!bet || game.scoreA === undefined || game.scoreB === undefined) continue;
-        const allGameBets = bets.filter((b) => b.gameId === game.id);
-        const betsOnA = allGameBets.filter((b) => b.scoreA > b.scoreB).length;
-        const betsOnB = allGameBets.filter((b) => b.scoreB > b.scoreA).length;
-        const userPickedA = bet.scoreA > bet.scoreB;
-        const userPickedB = bet.scoreB > bet.scoreA;
-        const isZebra =
-          (userPickedA && betsOnA < betsOnB) || (userPickedB && betsOnB < betsOnA);
-        const winner =
-          (bet.scoreA > bet.scoreB && game.scoreA > game.scoreB) ||
-          (bet.scoreA < bet.scoreB && game.scoreA < game.scoreB) ||
-          (bet.scoreA === bet.scoreB && game.scoreA === game.scoreB);
-        if (isZebra && winner) {
-          earned = true;
-          break;
-        }
-      }
-    }
-    return { ...badge, earned };
-  });
+  return BADGES.map((badge) => ({
+    ...badge,
+    earned: exactCount >= badge.requiredExact,
+    currentExact: exactCount,
+  }));
 }
 
 function calculatePoints(bets: Bet[], games: Game[], users: User[]): User[] {

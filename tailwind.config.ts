@@ -59,6 +59,7 @@ export default {
           gold: "hsl(var(--copa-gold))",
           silver: "hsl(var(--copa-silver))",
           bronze: "hsl(var(--copa-bronze))",
+          diamond: "hsl(var(--copa-diamond))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",

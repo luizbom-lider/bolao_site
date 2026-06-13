@@ -1,5 +1,4 @@
 import { useApp } from "@/lib/context";
-import mascotYoshi from "@/assets/mascot-yoshi.png";
 import { motion } from "framer-motion";
 import { Medal } from "lucide-react";
 
@@ -38,15 +37,6 @@ export default function RankingPage() {
                 transition={{ delay: posIdx * 0.15 }}
                 className="flex flex-col items-center flex-1 max-w-[140px]"
               >
-                {idx === 0 && (
-                  <motion.img
-                    src={mascotYoshi}
-                    alt="Yoshi"
-                    className="h-14 w-14 object-contain mb-1"
-                    animate={{ y: [0, -8, 0] }}
-                    transition={{ repeat: Infinity, duration: 2 }}
-                  />
-                )}
                 <span className="text-3xl mb-1">{medals[posIdx]}</span>
                 <p className="font-bold text-sm text-foreground text-center truncate w-full">{u.name}</p>
                 <p className="text-xs text-muted-foreground">{u.area}</p>
