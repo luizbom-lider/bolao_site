@@ -1,6 +1,5 @@
 import { useApp } from "@/lib/context";
 import { Game } from "@/lib/types";
-import mascotYoshi from "@/assets/mascot-yoshi.png";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Trophy, Target, ArrowRight, MessageCircle, Trash2 } from "lucide-react";
@@ -63,13 +62,6 @@ export default function HomePage() {
           animate={{ opacity: 1, y: 0 }}
           className="container text-center relative z-10"
         >
-          <motion.img
-            src={mascotYoshi}
-            alt="Yoshi Mascote"
-            className="h-28 w-28 mx-auto mb-4 object-contain drop-shadow-lg"
-            animate={{ y: [0, -10, 0] }}
-            transition={{ repeat: Infinity, duration: 2.5 }}
-          />
           <h1 className="font-display text-3xl md:text-5xl text-primary-foreground mb-3">
             BOLÃO COPA 2026 ⚽
           </h1>

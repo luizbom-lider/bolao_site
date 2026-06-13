@@ -10,12 +10,17 @@ export interface User {
   isAdmin?: boolean;
 }
 
+export type BadgeTier = 'silver' | 'gold' | 'diamond';
+
 export interface Badge {
   id: string;
   name: string;
   description: string;
   icon: string;
+  tier: BadgeTier;
+  requiredExact: number;
   earned: boolean;
+  currentExact?: number;
 }
 
 export interface Game {
@@ -51,12 +56,9 @@ export interface Comment {
 }
 
 export const BADGES: Badge[] = [
-  { id: "rei-palpite", name: "Rei do Palpite", description: "Acertou o placar exato 2 vezes consecutivas", icon: "👑", earned: false },
-  { id: "zebra-master", name: "Zebra Master", description: "Acertou um resultado improvável", icon: "🦓", earned: false },
-  { id: "on-fire", name: "On Fire", description: "Acertou 3 jogos seguidos", icon: "🔥", earned: false },
-  { id: "estreante", name: "Estreante", description: "Fez sua primeira aposta", icon: "⭐", earned: false },
-  { id: "vidente", name: "Vidente", description: "Acertou 5 placares exatos", icon: "🔮", earned: false },
-  { id: "torcedor-fiel", name: "Torcedor Fiel", description: "Apostou em todos os jogos da fase de grupos", icon: "🧡", earned: false },
+  { id: "prata", name: "Prata", description: "Acertou 1 placar exato", icon: "🥈", tier: "silver", requiredExact: 1, earned: false },
+  { id: "ouro", name: "Ouro", description: "Acertou 3 placares exatos", icon: "🥇", tier: "gold", requiredExact: 3, earned: false },
+  { id: "diamante", name: "Diamante", description: "Acertou 5 placares exatos", icon: "💎", tier: "diamond", requiredExact: 5, earned: false },
 ];
 
 export const MOCK_GAMES: Game[] = [];
